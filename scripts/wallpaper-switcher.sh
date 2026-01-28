@@ -14,4 +14,4 @@ if [ ! -f "/home/arshia/wallpapers/$input_file" ]; then
     exit 1
 fi
 
-hyprctl hyprpaper reload , "/home/arshia/wallpapers/$input_file"
+hyprctl hyprpaper wallpaper , "/home/arshia/wallpapers/$input_file"
