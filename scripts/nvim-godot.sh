@@ -1,21 +1,23 @@
-# ~/.local/bin/godot-nvim
 #!/usr/bin/env bash
+exec >>/tmp/godot-nvim.log 2>&1
+set -x
 
 PIPE="/tmp/godothost"
 FILE="$1"
 LINE="${2:-1}"
 COL="${3:-1}"
 
-# Start Neovim server if it's not running
+echo "Godot-Nvim: Opening $FILE:$LINE:$COL"
+
 if ! nvim --server "$PIPE" --remote-expr '1' &>/dev/null; then
-    # Launch Neovim in background
-    nvim --listen "$PIPE" &
-    sleep 0.3  # Give it a moment to start
+    echo "Starting new Neovim server..."
+    wezterm start -- nvim --listen "$PIPE" &
+    for i in $(seq 1 20); do
+        [[ -S "$PIPE" ]] && break
+        sleep 0.1
+    done
 fi
 
-# Open the file + jump to line/column
-nvim --server "$PIPE" --remote-send "<C-\\><C-N>:n ${FILE}<CR>:call cursor(${LINE},${COL})<CR>zz"
+nvim --server "$PIPE" --remote-send "<C-\\><C-N>:n $(printf '%q' "$FILE")<CR>:call cursor(${LINE},${COL})<CR>zz"
 
-# Focus the Neovim window in Hyprland
-hyprctl dispatch focuswindow "class:org.wezterm" >/dev/null 2>&1 || \
-hyprctl dispatch focuswindow "class:nvim" >/dev/null 2>&1 || true
+hyprctl dispatch focuswindow "class:org.wezfurlong.wezterm" || true
